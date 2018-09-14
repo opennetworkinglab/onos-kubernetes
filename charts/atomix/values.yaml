@@ -1,0 +1,25 @@
+atomixImage: atomix/atomix-kubernetes:3.0.5
+
+atomix:
+  replicas: 3
+  logLevel: INFO
+  heap: 3G
+  partitionGroupName: raft
+  partitionCount: 3
+  partitionSize: 3
+
+podDisruptionBudget:
+  enabled: true
+  maxUnavailable: 1
+  # minAvailable: 1
+
+persistence:
+  accessModes:
+    - ReadWriteOnce
+  size: 10Gi
+  annotations: {}
+
+resources:
+  requests:
+    cpu: 0.5
+    memory: 1Gi

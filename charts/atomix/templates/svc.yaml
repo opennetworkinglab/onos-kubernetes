@@ -1,0 +1,34 @@
+# Headless service for stable DNS entries
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ template "fullname" . }}-hs
+  labels:
+    app: {{ template "fullname" . }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: "{{ .Release.Name }}"
+    heritage: "{{ .Release.Service }}"
+spec:
+  ports:
+  - name: {{ template "fullname" . }}-node
+    port: 5679
+  clusterIP: None
+  selector:
+    app: {{ template "fullname" . }}
+---
+# Client service for connecting to any Atomix instance REST API.
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ template "fullname" . }}-api
+  labels:
+    app: {{ template "fullname" . }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: "{{ .Release.Name }}"
+    heritage: "{{ .Release.Service }}"
+spec:
+  ports:
+  - name: {{ template "fullname" . }}-api
+    port: 5678
+  selector:
+    app: {{ template "fullname" . }}

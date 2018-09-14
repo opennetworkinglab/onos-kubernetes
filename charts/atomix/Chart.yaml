@@ -1,0 +1,15 @@
+apiVersion: v1
+name: atomix
+version: 0.1.0
+kubeVersion: ">=1.10.0"
+appVersion: 3.0.5
+description: Atomix cluster with one Raft partition group
+keywords:
+  - atomix
+  - database
+  - cluster
+home: https://atomix.io
+icon: https://atomix.io/assets/img/atomix-fav.png
+maintainers:
+  - name: kuujo
+    email: jordan@opennetworking.org
