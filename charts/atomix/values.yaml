@@ -1,6 +1,6 @@
-atomixImage: atomix/atomix-kubernetes:3.0.5
-
 atomix:
+  image: atomix/atomix-kubernetes:3.0.5
+  imagePullPolicy: Never
   replicas: 3
   logLevel: INFO
   heap: 3G
