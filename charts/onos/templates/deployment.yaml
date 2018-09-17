@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ template "fullname" . }}
+  labels:
+    app: {{ template "fullname" . }}
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: onos
+  template:
+    metadata:
+      labels:
+        app: {{ template "fullname" . }}
+    spec:
+      containers:
+      - name: onos
+        image: {{ .Values.onos.image }}
+        imagePullPolicy: {{ .Values.onos.imagePullPoicy }}
+        env:
+          - name: ATOMIX_SERVICE
+            value: {{ default "atomix" .Values.atomix.service | quote }}
+          - name: ATOMIX_REPLICAS
+            value: {{ default "1" .Values.atomix.replicas | quote }}
+          - name: ONOS_HEAP
+            value: {{ default "3G" .Values.onos.heap | quote }}
+        resources:
+          requests:
+            memory: {{ .Values.resources.requests.memory }}
+            cpu: {{ .Values.resources.requests.cpu }}
+        ports:
+        - name: openflow
+          containerPort: {{ template "fullname" . }}-openflow
+        - name: ovsdb
+          containerPort: {{ template "fullname" . }}-ovsdb
+        - name: east-west
+          containerPort: {{ template "fullname" . }}-east-west
+        - name: cli
+          containerPort: {{ template "fullname" . }}-cli
+        - name: ui
+          containerPort: {{ template "fullname" . }}-ui
+        command:
+        - sh
+        - -c
+        - "start-onos \
+           --service=$ATOMIX_SERVICE \
+           --replicas=$ATOMIX_REPLICAS
+           --heap=$ONOS_HEAP"
+        readinessProbe:
+          exec:
+            command:
+            - /bin/bash
+            - -c
+            - check-onos-status
+          initialDelaySeconds: 30
+          timeoutSeconds: 5
+        livenessProbe:
+          exec:
+            command:
+            - /bin/bash
+            - -c
+            - check-onos-status
+          initialDelaySeconds: 30
+          timeoutSeconds: 5

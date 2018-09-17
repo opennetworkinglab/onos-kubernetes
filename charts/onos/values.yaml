@@ -1,0 +1,20 @@
+onos:
+  image: onos/onos-kubernetes:1.14.0
+  imagePullPolicy: Never
+  autoscale: true
+  minReplicas: 3
+  maxReplicas: 7
+
+autoscaling:
+  enabled: false
+  minReplicas: 2
+  maxReplicas: 10
+
+atomix:
+  service: atomix
+  replicas: 3
+
+resources:
+  requests:
+    cpu: 0.5
+    memory: 1Gi
