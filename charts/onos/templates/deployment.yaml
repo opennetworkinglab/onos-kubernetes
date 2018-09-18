@@ -5,7 +5,7 @@ metadata:
   labels:
     app: {{ template "fullname" . }}
 spec:
-  replicas: 3
+  replicas: {{ .Values.onos.replicas }}
   selector:
     matchLabels:
       app: onos

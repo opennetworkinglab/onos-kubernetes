@@ -1,9 +1,8 @@
 onos:
   image: onos/onos-kubernetes:1.14.0
   imagePullPolicy: Never
-  autoscale: true
-  minReplicas: 3
-  maxReplicas: 7
+  replicas: 3
+  proxy: false
 
 autoscaling:
   enabled: false
