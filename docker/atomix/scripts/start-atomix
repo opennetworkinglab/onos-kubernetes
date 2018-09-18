@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 #
-#Usage: start-atomix [OPTIONS]
+# Usage: start-atomix [OPTIONS]
 # Starts an Atomix server based on the supplied options.
 #     --nodes             The number of nodes in the cluster. The default
 #                         value is 1.

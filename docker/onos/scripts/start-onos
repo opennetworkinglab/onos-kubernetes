@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 #
-#Usage: start-onos [OPTIONS]
+# Usage: start-onos [OPTIONS]
 # Starts an ONOS server based on the supplied options.
 #     --service           The name of the Atomix service to which to connect.
 #     --replicas          The number of Atomix nodes to which to connect. The default value is 1.
