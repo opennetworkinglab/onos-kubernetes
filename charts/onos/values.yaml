@@ -16,4 +16,4 @@ atomix:
 resources:
   requests:
     cpu: 0.5
-    memory: 1Gi
+    memory: 512Mi

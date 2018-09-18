@@ -9,15 +9,15 @@ metadata:
     heritage: "{{ .Release.Service }}"
 spec:
   ports:
-  - name: {{ template "fullname" . }}-openflow
+  - name: openflow
     port: 6653
-  - name: {{ template "fullname" . }}-ovsdb
+  - name: ovsdb
     port: 6640
-  - name: {{ template "fullname" . }}-east-west
+  - name: east-west
     port: 9876
-  - name: {{ template "fullname" . }}-cli
+  - name: cli
     port: 8101
-  - name: {{ template "fullname" . }}-ui
+  - name: ui
     port: 8181
   clusterIP: None
   selector:

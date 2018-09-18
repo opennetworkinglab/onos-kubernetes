@@ -25,7 +25,8 @@
 USER=`whoami`
 HOST=`hostname -s`
 DOMAIN=`hostname -d`
-CONF_DIR="/src/onos/config"
+CONFIG_DIR="/root/onos/config"
+CONFIG_FILE="$CONFIG_DIR/cluster.json"
 HEAP=2G
 
 function print_usage() {
@@ -50,26 +51,30 @@ function print_config() {
 function print_node() {
     echo "  \"node\": {"
     echo "    \"id\": \"$HOST\","
-    echo "    \"ip\": \"$HOST\","
+    echo "    \"ip\": \"$HOST.$DOMAIN\","
     echo "    \"port\": 9876"
     echo "  },"
 }
 
 function print_storage() {
     echo "  \"storage\": ["
-    for (( i=1; i<=$ATOMIX_REPLICAS; i++ ))
+    nodes="${#ATOMIX_NODES[@]}"/3
+    last_node=$(($nodes-1))
+    for (( i=0; i<$nodes; i++ ))
     do
-        if [ $i -eq $ATOMIX_REPLICAS ]; then
+        start=$(($i*3))
+        node=("${ATOMIX_NODES[@]:$start:3}")
+        if [ $i -eq $last_node ]; then
             echo "    {"
-            echo "      \"id\": \"$ATOMIX_SERVICE-$((i))\","
-            echo "      \"ip\": \"$ATOMIX_SERVICE-$((i-1)).$DOMAIN\","
-            echo "      \"port\": 5679"
+            echo "      \"id\": \"${node[0]}\","
+            echo "      \"ip\": \"${node[1]}\","
+            echo "      \"port\": ${node[2]}"
             echo "    }"
         else
             echo "    {"
-            echo "      \"id\": \"$ATOMIX_SERVICE-$((i))\","
-            echo "      \"ip\": \"$ATOMIX_SERVICE-$((i-1)).$DOMAIN\","
-            echo "      \"port\": 5679"
+            echo "      \"id\": \"${node[0]}\","
+            echo "      \"ip\": \"${node[1]}\","
+            echo "      \"port\": ${node[2]}"
             echo "    },"
         fi
     done
@@ -78,7 +83,8 @@ function print_storage() {
 
 function create_config() {
     rm -f CONFIG_FILE
-    print_config >> $CONFIG_FILE
+    mkdir -p $CONFIG_DIR
+    print_config > $CONFIG_FILE
     cat $CONFIG_FILE >&2
 }
 
@@ -117,10 +123,11 @@ while getopts "$optspec" optchar; do
     esac
 done
 
-CONFIG_FILE="$CONF_DIR/cluster.json"
-
-for (( i=1; i<=$ATOMIX_REPLICAS; i++ )); do
-    until nslookup $ATOMIX_SERVICE-$((i-1)).$DOMAIN; do echo waiting for Atomix node $i to become available; sleep 2; done;
+while [[ "$(curl -s -o /dev/null -w ''%{http_code}'' http://$ATOMIX_SERVICE-hs:5678/v1/status)" != "200" ]]; do
+    echo "Waiting for Atomix service"
+    sleep 5;
 done
+
+ATOMIX_NODES=($(curl -s http://$ATOMIX_SERVICE-hs:5678/v1/cluster/nodes | jq -r '.[] | "\(.id) \(.host) \(.port)"'))
 
 create_config && ./bin/onos-service start server

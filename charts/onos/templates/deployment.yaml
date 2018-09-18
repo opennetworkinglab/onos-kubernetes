@@ -8,7 +8,7 @@ spec:
   replicas: {{ .Values.onos.replicas }}
   selector:
     matchLabels:
-      app: onos
+      app: {{ template "fullname" . }}
   template:
     metadata:
       labels:
@@ -31,19 +31,19 @@ spec:
             cpu: {{ .Values.resources.requests.cpu }}
         ports:
         - name: openflow
-          containerPort: {{ template "fullname" . }}-openflow
+          containerPort: 6653
         - name: ovsdb
-          containerPort: {{ template "fullname" . }}-ovsdb
+          containerPort: 6640
         - name: east-west
-          containerPort: {{ template "fullname" . }}-east-west
+          containerPort: 9876
         - name: cli
-          containerPort: {{ template "fullname" . }}-cli
+          containerPort: 8101
         - name: ui
-          containerPort: {{ template "fullname" . }}-ui
+          containerPort: 8181
         command:
         - sh
         - -c
-        - "start-onos \
+        - "bin/start-onos \
            --service=$ATOMIX_SERVICE \
            --replicas=$ATOMIX_REPLICAS
            --heap=$ONOS_HEAP"
