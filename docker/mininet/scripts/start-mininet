@@ -1,0 +1,78 @@
+#!/usr/bin/env bash
+# Copyright 2018 Open Networking Foundation
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+#
+# Usage: start-mininet [OPTIONS]
+# Starts a Mininet node based on the supplied options.
+#     --service           The name of the ONOS service to which to connect.
+#     --replicas          The number of ONOS nodes to which to connect. The default value is 1.
+
+
+USER=`whoami`
+HOST=`hostname -s`
+DOMAIN=`hostname -d`
+CONF_DIR="/src/onos/config"
+HEAP=2G
+
+function print_usage() {
+echo "\
+Usage: start-onos [OPTIONS]
+Starts Mininet based on the supplied options.
+    --service           The name of the ONOS service to which to connect.
+    --replicas          The number of ONOS nodes to which to connect. The default value is 1.
+    --topo              The Mininet topology.
+"
+}
+
+optspec=":hv-:"
+while getopts "$optspec" optchar; do
+
+    case "${optchar}" in
+        -)
+            case "${OPTARG}" in
+                service=*)
+                    ONOS_SERVICE=${OPTARG##*=}
+                    ;;
+                replicas=*)
+                    ONOS_REPLICAS=${OPTARG##*=}
+                    ;;
+                *)
+                    break
+                    ;;
+            esac;;
+        h)
+            print_usage
+            exit
+            ;;
+        *)
+            break
+            ;;
+    esac
+done
+
+shift $((OPTIND-1))
+
+controllers=""
+for (( i=1; i<=$ONOS_REPLICAS; i++ ))
+do
+    controllers+=" --controller remote,ip=$ONOS_SERVICE-$((i-1))"
+done
+
+echo "mn $controllers $@"
+
+service openvswitch-switch start
+ovs-vsctl set-manager ptcp:6640
+
+mn $controllers "$@"
