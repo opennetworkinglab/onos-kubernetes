@@ -1,0 +1,48 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: {{ include "mininet.fullname" . }}
+  labels:
+    app: {{ include "mininet.name" . }}
+    chart: {{ include "mininet.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  containers:
+  - name: {{ .Chart.Name }}
+    image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+    imagePullPolicy: {{ .Values.image.pullPolicy }}
+    ports:
+    - name: openflow-legacy
+      containerPort: 6633
+    - name: openflow
+      containerPort: 6653
+    - name: ovsdb
+      containerPort: 6640
+    env:
+    - name: CONTROLLER_SERVICE
+      value: {{ .Values.controller.service }}
+    - name: CONTROLLER_REPLICAS
+      value: {{ default "1" .Values.controller.replicas | quote }}
+    - name: MININET_TOPO
+      value: {{ default "linear,4" .Values.mininet.topo | quote }}
+    - name: MININET_SWITCH
+      value: {{ default "openvswitch" .Values.mininet.switch | quote }}
+    command:
+      - sh
+      - -c
+      - "./start-mininet \
+         --service=$CONTROLLER_SERVICE \
+         --replicas=$CONTROLLER_REPLICAS \
+         --topo=$MININET_TOPO \
+         --switch=$MININET_SWITCH"
+    readinessProbe:
+      tcpSocket:
+        port: openflow
+        initialDelaySeconds: 5
+        periodSeconds: 10
+    livenessProbe:
+      tcpSocket:
+        port: openflow
+        initialDelaySeconds: 5
+        periodSeconds: 10
