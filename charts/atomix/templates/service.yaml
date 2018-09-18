@@ -8,10 +8,13 @@ metadata:
     chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
     release: "{{ .Release.Name }}"
     heritage: "{{ .Release.Service }}"
+  annotations:
+    service.alpha.kubernetes.io/tolerate-unready-endpoints: "true"
 spec:
   ports:
   - name: {{ template "fullname" . }}-node
     port: 5679
+  publishNotReadyAddresses: true
   clusterIP: None
   selector:
     app: {{ template "fullname" . }}

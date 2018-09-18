@@ -2,7 +2,7 @@
 
 build_atomix() {
   version=$1
-  docker build -t atomix/atomix-kubernetes:$version -f docker/atomix/Dockerfile . --build-arg VERSION=$version
+  docker build -t atomix/atomix-kubernetes:$version docker/atomix --build-arg ATOMIX_VERSION=$version
 }
 
 build_onos() {

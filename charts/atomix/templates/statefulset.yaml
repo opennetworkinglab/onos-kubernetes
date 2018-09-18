@@ -49,12 +49,18 @@ spec:
           --datadir=/var/lib/atomix/data \
           --loglevel=$ATOMIX_LOG_LEVEL \
           --heap=$ATOMIX_HEAP"
+        readinessProbe:
+          httpGet:
+            path: /v1/status
+            port: 5678
+          initialDelaySeconds: 10
+          timeoutSeconds: 10
         livenessProbe:
           httpGet:
             path: /v1/status
             port: 5678
           initialDelaySeconds: 30
-          timeoutSeconds: 5
+          timeoutSeconds: 10
         volumeMounts:
         - name: data
           mountPath: /var/lib/atomix
