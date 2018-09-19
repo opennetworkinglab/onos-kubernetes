@@ -6,11 +6,13 @@ MAINTAINER Jordan Halterman <jordan@opennetworking.org>
 ENV HOME /root
 ENV BUILD_NUMBER docker
 ENV JAVA_TOOL_OPTIONS=-Dfile.encoding=UTF8
+ENV REPO=https://github.com/opennetworkinglab/onos.git
+ENV BRANCH=onos-1.14
 
 # Change to the build directory
 WORKDIR /src/onos
 RUN apt-get update && apt-get install -y zip python git bzip2 build-essential \
-    && git clone --branch onos-1.14 https://github.com/opennetworkinglab/onos.git /src/onos \
+    && git clone --branch $BRANCH $REPO /src/onos \
     && cd /src/onos \
     && curl -L -o bazel.sh https://github.com/bazelbuild/bazel/releases/download/0.15.2/bazel-0.15.2-installer-linux-x86_64.sh \
     && chmod +x bazel.sh \
