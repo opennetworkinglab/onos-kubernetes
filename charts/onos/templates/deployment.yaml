@@ -50,16 +50,16 @@ spec:
         readinessProbe:
           exec:
             command:
-            - /bin/bash
+            - sh
             - -c
-            - check-onos-status
+            - bin/check-onos-status
           initialDelaySeconds: 30
           timeoutSeconds: 5
         livenessProbe:
           exec:
             command:
-            - /bin/bash
+            - sh
             - -c
-            - check-onos-status
+            - bin/check-onos-status
           initialDelaySeconds: 30
           timeoutSeconds: 5

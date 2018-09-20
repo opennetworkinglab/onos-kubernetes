@@ -43,15 +43,20 @@ Starts an ONOS node based on the supplied options.
 
 function print_config() {
     echo "{"
+    print_name
     print_node
     print_storage
     echo "}"
 }
 
+function print_name() {
+    echo "  \"name\": \"atomix\","
+}
+
 function print_node() {
     echo "  \"node\": {"
     echo "    \"id\": \"$HOST\","
-    echo "    \"ip\": \"$HOST.$DOMAIN\","
+    echo "    \"host\": \"$HOST\","
     echo "    \"port\": 9876"
     echo "  },"
 }
@@ -67,13 +72,13 @@ function print_storage() {
         if [ $i -eq $last_node ]; then
             echo "    {"
             echo "      \"id\": \"${node[0]}\","
-            echo "      \"ip\": \"${node[1]}\","
+            echo "      \"host\": \"${node[1]}\","
             echo "      \"port\": ${node[2]}"
             echo "    }"
         else
             echo "    {"
             echo "      \"id\": \"${node[0]}\","
-            echo "      \"ip\": \"${node[1]}\","
+            echo "      \"host\": \"${node[1]}\","
             echo "      \"port\": ${node[2]}"
             echo "    },"
         fi

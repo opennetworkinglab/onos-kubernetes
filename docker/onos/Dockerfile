@@ -6,8 +6,10 @@ MAINTAINER Jordan Halterman <jordan@opennetworking.org>
 ENV HOME /root
 ENV BUILD_NUMBER docker
 ENV JAVA_TOOL_OPTIONS=-Dfile.encoding=UTF8
-ENV REPO=https://github.com/opennetworkinglab/onos.git
-ENV BRANCH=onos-1.14
+
+# Get arguments
+ARG REPO=https://github.com/opennetworkinglab/onos.git
+ARG BRANCH=onos-1.14
 
 # Change to the build directory
 WORKDIR /src/onos
