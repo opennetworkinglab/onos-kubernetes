@@ -1,9 +1,14 @@
+nameOverride: ""
+
+image:
+  repository: atomix/atomix-kubernetes
+  tag: 3.0.5
+  pullPolicy: Never
+
 atomix:
-  image: atomix/atomix-kubernetes:3.0.5
-  imagePullPolicy: Never
   replicas: 3
   logLevel: INFO
-  heap: 3G
+  heap: 2G
   partitionGroupName: raft
   partitionCount: 3
   partitionSize: 3

@@ -22,16 +22,16 @@ spec:
         app: {{ template "fullname" . }}
     spec:
       containers:
-      - name: atomix
-        image: {{ .Values.atomix.image }}
-        imagePullPolicy: {{ .Values.atomix.imagePullPolicy }}
+      - name: {{ .Chart.Name }}
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
         env:
         - name: ATOMIX_NODES
           value: {{ default "" .Values.atomix.replicas | quote }}
         - name: ATOMIX_LOG_LEVEL
           value: {{ default "INFO" .Values.atomix.logLevel | quote }}
         - name: ATOMIX_HEAP
-          value: {{ default "3G" .Values.atomix.heap | quote }}
+          value: {{ default "2G" .Values.atomix.heap | quote }}
         resources:
           requests:
             memory: {{ .Values.resources.requests.memory }}
@@ -55,6 +55,7 @@ spec:
             port: 5678
           initialDelaySeconds: 10
           timeoutSeconds: 10
+          failureThreshold: 6
         livenessProbe:
           httpGet:
             path: /v1/status

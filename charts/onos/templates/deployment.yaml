@@ -15,16 +15,14 @@ spec:
         app: {{ template "fullname" . }}
     spec:
       containers:
-      - name: onos
-        image: {{ .Values.onos.image }}
-        imagePullPolicy: {{ .Values.onos.imagePullPoicy }}
+      - name: {{ .Chart.Name }}
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
         env:
           - name: ATOMIX_SERVICE
             value: {{ default "atomix" .Values.atomix.service | quote }}
-          - name: ATOMIX_REPLICAS
-            value: {{ default "1" .Values.atomix.replicas | quote }}
           - name: ONOS_HEAP
-            value: {{ default "3G" .Values.onos.heap | quote }}
+            value: {{ default "4G" .Values.onos.heap | quote }}
         resources:
           requests:
             memory: {{ .Values.resources.requests.memory }}
@@ -45,7 +43,6 @@ spec:
         - -c
         - "bin/start-onos \
            --service=$ATOMIX_SERVICE \
-           --replicas=$ATOMIX_REPLICAS
            --heap=$ONOS_HEAP"
         readinessProbe:
           exec:
@@ -54,7 +51,8 @@ spec:
             - -c
             - bin/check-onos-status
           initialDelaySeconds: 30
-          timeoutSeconds: 5
+          timeoutSeconds: 15
+          failureThreshold: 10
         livenessProbe:
           exec:
             command:

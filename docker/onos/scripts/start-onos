@@ -102,9 +102,6 @@ while getopts "$optspec" optchar; do
                 service=*)
                     ATOMIX_SERVICE=${OPTARG##*=}
                     ;;
-                replicas=*)
-                    ATOMIX_REPLICAS=${OPTARG##*=}
-                    ;;
                 heap=*)
                     HEAP=${OPTARG##*=}
                     ;;

@@ -1,17 +1,23 @@
+nameOverride: ""
+
+image:
+  repository: onos/onos-kubernetes
+  tag: 1.14.0
+  pullPolicy: Never
+
 onos:
-  image: onos/onos-kubernetes:1.14.0
-  imagePullPolicy: Never
   replicas: 3
-  proxy: false
+  heap: 4G
+  proxy:
+    enabled: false
+
+atomix:
+  service: atomix
 
 autoscaling:
   enabled: false
   minReplicas: 2
   maxReplicas: 10
-
-atomix:
-  service: atomix
-  replicas: 3
 
 resources:
   requests:

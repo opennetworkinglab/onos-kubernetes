@@ -1,5 +1,4 @@
 nameOverride: ""
-fullnameOverride: ""
 
 image:
   repository: onos/mininet-kubernetes
