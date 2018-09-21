@@ -25,6 +25,12 @@ spec:
       - name: {{ .Chart.Name }}
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
         imagePullPolicy: {{ .Values.image.pullPolicy }}
+        {{- if .Values.image.pullSecrets }}
+        imagePullSecrets:
+          {{- range .Values.image.pullSecrets }}
+          - name: {{ . | quote }}
+          {{- end }}
+        {{- end }}
         env:
         - name: ATOMIX_NODES
           value: {{ default "" .Values.atomix.replicas | quote }}
@@ -44,7 +50,7 @@ spec:
         command:
         - sh
         - -c
-        - "start-atomix \
+        - "bin/start-atomix \
           --nodes=$ATOMIX_NODES \
           --datadir=/var/lib/atomix/data \
           --loglevel=$ATOMIX_LOG_LEVEL \
@@ -65,9 +71,6 @@ spec:
         volumeMounts:
         - name: data
           mountPath: /var/lib/atomix
-      securityContext:
-        runAsUser: 1000
-        fsGroup: 1000
   volumeClaimTemplates:
   - metadata:
       name: data

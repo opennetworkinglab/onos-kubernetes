@@ -29,7 +29,7 @@
 USER=`whoami`
 HOST=`hostname -s`
 DOMAIN=`hostname -d`
-CONF_DIR="/opt/atomix/conf"
+CONF_DIR="/root/atomix/conf"
 DATA_DIR="/var/lib/atomix/data"
 LOG_DIR="/var/log/atomix"
 LOG_LEVEL=INFO
@@ -168,12 +168,12 @@ create_config \
     -XX:+UseConcMarkSweepGC \
     -XX:+CMSIncrementalMode \
     -Xmx$HEAP \
-    -Datomix.root="/opt/atomix" \
+    -Datomix.root="/root/atomix" \
     -Datomix.data="$DATA_DIR/atomix-$ORD" \
     -Datomix.log="$LOG_DIR" \
     -Datomix.level="$LOG_LEVEL" \
-    -Datomix.config="/opt/atomix/conf/atomix.properties" \
-    -Dlogback.configurationFile="/opt/atomix/conf/logback.xml" \
+    -Datomix.config="/root/atomix/conf/atomix.properties" \
+    -Dlogback.configurationFile="/root/atomix/conf/logback.xml" \
     -Dvertx.disableFileCPResolving=true \
-    -cp .:"/opt/atomix/lib/system/*":"/opt/atomix/lib/ext/*" \
+    -cp .:"/root/atomix/lib/system/*":"/root/atomix/lib/ext/*" \
     io.atomix.agent.AtomixAgent

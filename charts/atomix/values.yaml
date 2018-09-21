@@ -3,7 +3,8 @@ nameOverride: ""
 image:
   repository: atomix/atomix-kubernetes
   tag: 3.0.5
-  pullPolicy: Never
+  pullPolicy: IfNotPresent
+  pullSecrets: []
 
 atomix:
   replicas: 3
