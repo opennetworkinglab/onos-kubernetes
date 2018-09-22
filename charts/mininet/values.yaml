@@ -3,7 +3,8 @@ nameOverride: ""
 image:
   repository: onos/mininet-kubernetes
   tag: 2.2.2
-  pullPolicy: Never
+  pullPolicy: IfNotPresent
+  pullSecrets: []
 
 mininet:
   topo: "linear,4"

@@ -3,7 +3,8 @@ nameOverride: ""
 image:
   repository: onos/onos-kubernetes
   tag: 1.14.0
-  pullPolicy: Never
+  pullPolicy: IfNotPresent
+  pullSecrets: []
 
 onos:
   replicas: 3
