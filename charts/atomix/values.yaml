@@ -10,9 +10,6 @@ atomix:
   replicas: 3
   logLevel: INFO
   heap: 2G
-  partitionGroupName: raft
-  partitionCount: 3
-  partitionSize: 3
   config: |
     managementGroup {
       type: raft
