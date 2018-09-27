@@ -54,9 +54,9 @@ spec:
         - -c
         - "/scripts/create-config --nodes=$ATOMIX_NODES > /config/atomix.properties"
         volumeMounts:
-        - name: init
+        - name: init-scripts
           mountPath: /scripts
-        - name: config
+        - name: system-config
           mountPath: /config
       containers:
       - name: {{ .Chart.Name }}
@@ -75,7 +75,9 @@ spec:
         - name: server
           containerPort: 5679
         args:
-        - "--config=/etc/atomix/atomix.properties"
+        - "--config"
+        - "/etc/atomix/system/atomix.properties"
+        - "/etc/atomix/user/atomix.conf"
         - "--ignore-resources"
         - "--data-dir=/var/lib/atomix/data"
         - "--log-level=INFO"
@@ -97,8 +99,10 @@ spec:
         volumeMounts:
         - name: data
           mountPath: /var/lib/atomix
-        - name: config
-          mountPath: /etc/atomix
+        - name: system-config
+          mountPath: /etc/atomix/system
+        - name: user-config
+          mountPath: /etc/atomix/user
       {{- if .Values.image.pullSecrets }}
       imagePullSecrets:
         {{- range .Values.image.pullSecrets }}
@@ -106,11 +110,14 @@ spec:
         {{- end }}
       {{- end }}
       volumes:
-      - name: init
+      - name: init-scripts
         configMap:
           name: {{ template "fullname" . }}-init-scripts
           defaultMode: 0744
-      - name: config
+      - name: user-config
+        configMap:
+          name: {{ template "fullname" . }}-config
+      - name: system-config
         emptyDir: {}
   volumeClaimTemplates:
   - metadata:

@@ -30,6 +30,14 @@ Creates an Atomix configuration from the supplied arguments.
 "
 }
 
+function print_variables() {
+    echo "atomix.replicas=$NODES"
+    for (( i=1; i<=$NODES; i++ ))
+    do
+        echo "atomix.members.$i=$NAME-$((i))"
+    done
+}
+
 function print_node() {
     echo "cluster.node.id=$NAME-$((ORD+1))"
     echo "cluster.node.address=$NAME-$ORD.$DOMAIN:5679"
@@ -44,30 +52,11 @@ function print_discovery() {
     done
 }
 
-function print_management_nodes() {
-    for (( i=1; i<=$NODES; i++ ))
-    do
-        echo "management-group.members.$i=$NAME-$((i))"
-    done
-}
-
-function print_raft_nodes() {
-    for (( i=1; i<=$NODES; i++ ))
-    do
-        echo "partition-groups.raft.members.$i=$NAME-$((i))"
-    done
-}
-
 function create_config() {
+    print_variables
     echo "cluster.cluster-id=atomix"
     print_node
     print_discovery
-    echo "management-group.type=raft"
-    echo "management-group.partitions=1"
-    print_management_nodes
-    echo "partition-groups.raft.type=raft"
-    echo "partition-groups.raft.partitions=7"
-    print_raft_nodes
 }
 
 optspec=":hv-:"
