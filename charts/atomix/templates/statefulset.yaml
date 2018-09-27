@@ -1,3 +1,13 @@
+# This template provides a StatefulSet for Atomix nodes.
+# The StatefulSet is used to ensure that nodes are assigned a persistent identity.
+# The StatefulSet must be used with a headless service to ensure pods can communicate with each other through
+# their persistent identities.
+# The StatefulSet supports upgrades through a simple RollingUpdate strategy.
+# An anti-affinity policy is used to ensure pods are scheduled on distinct hosts when enabled.
+# To configure the pods, an init container is used to populate a properties file on an ephemeral volume. The
+# configuration volume is shared with the primary container for configuration purposes.
+# Additionally, a volume claim template is used for the Raft partition logs.
+# It's recommended that local-storage be used with the StatefulSet.
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -21,6 +31,7 @@ spec:
       labels:
         app: {{ template "fullname" . }}
     spec:
+      {{- if .Values.podAntiAffinity.enabled }}
       affinity:
         podAntiAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
@@ -31,17 +42,29 @@ spec:
                 values:
                 - {{ template "fullname" . }}
             topologyKey: kubernetes.io/hostname
+      {{- end }}
+      initContainers:
+      - name: configure
+        image: ubuntu:16.04
+        env:
+        - name: ATOMIX_NODES
+          value: {{ default "1" .Values.atomix.replicas | quote }}
+        command:
+        - bash
+        - -c
+        - "/scripts/create-config --nodes=$ATOMIX_NODES > /config/atomix.properties"
+        volumeMounts:
+        - name: init
+          mountPath: /scripts
+        - name: config
+          mountPath: /config
       containers:
       - name: {{ .Chart.Name }}
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         env:
-        - name: ATOMIX_NODES
-          value: {{ default "" .Values.atomix.replicas | quote }}
-        - name: ATOMIX_LOG_LEVEL
-          value: {{ default "INFO" .Values.atomix.logLevel | quote }}
-        - name: ATOMIX_HEAP
-          value: {{ default "2G" .Values.atomix.heap | quote }}
+        - name: JAVA_OPTS
+          value: -Xmx{{ default "2G" .Values.atomix.heap }}
         resources:
           requests:
             memory: {{ .Values.resources.requests.memory }}
@@ -51,14 +74,13 @@ spec:
           containerPort: 5678
         - name: server
           containerPort: 5679
-        command:
-        - sh
-        - -c
-        - "bin/start-atomix \
-          --nodes=$ATOMIX_NODES \
-          --datadir=/var/lib/atomix/data \
-          --loglevel=$ATOMIX_LOG_LEVEL \
-          --heap=$ATOMIX_HEAP"
+        args:
+        - "--config=/etc/atomix/atomix.properties"
+        - "--ignore-resources"
+        - "--data-dir=/var/lib/atomix/data"
+        - "--log-level=INFO"
+        - "--file-log-level=OFF"
+        - "--console-log-level=INFO"
         readinessProbe:
           httpGet:
             path: /v1/status
@@ -75,12 +97,21 @@ spec:
         volumeMounts:
         - name: data
           mountPath: /var/lib/atomix
+        - name: config
+          mountPath: /etc/atomix
       {{- if .Values.image.pullSecrets }}
       imagePullSecrets:
         {{- range .Values.image.pullSecrets }}
         - name: {{ . | quote }}
         {{- end }}
       {{- end }}
+      volumes:
+      - name: init
+        configMap:
+          name: {{ template "fullname" . }}-init-scripts
+          defaultMode: 0744
+      - name: config
+        emptyDir: {}
   volumeClaimTemplates:
   - metadata:
       name: data

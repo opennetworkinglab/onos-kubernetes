@@ -1,8 +1,8 @@
 nameOverride: ""
 
 image:
-  repository: atomix/atomix-kubernetes
-  tag: 3.0.5
+  repository: atomix/atomix
+  tag: latest
   pullPolicy: IfNotPresent
   pullSecrets: []
 
@@ -13,6 +13,9 @@ atomix:
   partitionGroupName: raft
   partitionCount: 3
   partitionSize: 3
+
+podAntiAffinity:
+  enabled: true
 
 podDisruptionBudget:
   enabled: true

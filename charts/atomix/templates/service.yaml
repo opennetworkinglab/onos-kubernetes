@@ -1,4 +1,6 @@
-# Headless service for stable DNS entries
+# Headless service for stable DNS entries.
+# The critical component of this service is support for publishing DNS entries before pods are ready.
+# This is necessary for Atomix nodes to reach each other to form a quorum before transitioning to the ready state.
 apiVersion: v1
 kind: Service
 metadata:
