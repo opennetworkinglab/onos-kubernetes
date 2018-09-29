@@ -8,6 +8,10 @@ image:
 
 replicas: 3
 heap: 4G
+apps:
+- org.onosproject.hostprovider
+- org.onosproject.openflow
+- org.onosproject.mcast
 
 atomix:
   replicas: 3
