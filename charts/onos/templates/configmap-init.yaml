@@ -1,0 +1,82 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "fullname" . }}-init-scripts
+  labels:
+    app: {{ template "fullname" . }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: "{{ .Release.Name }}"
+    heritage: "{{ .Release.Service }}"
+data:
+  configure-onos.sh: |
+    #!/usr/bin/env bash
+
+    apt-get update > /dev/null 2>&1
+    apt-get -y install dnsutils > /dev/null 2>&1
+
+    USER=`whoami`
+    HOST=`hostname -s`
+    DOMAIN=`hostname -d`
+    CONFIG_DIR="/root/onos/config"
+    CONFIG_FILE="$CONFIG_DIR/cluster.json"
+    HEAP=2G
+
+    function print_usage() {
+    echo "\
+    Usage: start-onos [OPTIONS]
+    Starts an ONOS node based on the supplied options.
+        --service           The name of the Atomix service to which to connect.
+        --replicas          The number of Atomix nodes to which to connect. The default value is 1.
+        --heap              The maximum amount of heap to use. The format is the
+                            same as that used for the Xmx and Xms parameters to the
+                            JVM. e.g. --heap=2G. The default is 2G.
+    "
+    }
+
+    function print_config() {
+        echo "{"
+        print_name
+        print_node
+        print_storage
+        echo "}"
+    }
+
+    function print_name() {
+        echo "  \"name\": \"atomix\","
+    }
+
+    function print_node() {
+        echo "  \"node\": {"
+        echo "    \"id\": \"$HOST\","
+        echo "    \"host\": \"$HOST\","
+        echo "    \"port\": 9876"
+        echo "  },"
+    }
+
+    function print_storage() {
+        echo "  \"storage\": ["
+        for (( i=1; i<=$ATOMIX_REPLICAS; i++ ))
+        do
+            if [ $i -eq $ATOMIX_REPLICAS ]; then
+                echo "    {"
+                echo "      \"id\": \"$ATOMIX_SERVICE-$((i))\","
+                echo "      \"host\": \"$ATOMIX_SERVICE-$((i-1)).$ATOMIX_SERVICE-hs\","
+                echo "      \"port\": 5679"
+                echo "    }"
+            else
+                echo "    {"
+                echo "      \"id\": \"$ATOMIX_SERVICE-$((i))\","
+                echo "      \"host\": \"$ATOMIX_SERVICE-$((i-1)).$ATOMIX_SERVICE-hs\","
+                echo "      \"port\": 5679"
+                echo "    },"
+            fi
+        done
+        echo "  ]"
+    }
+
+    ATOMIX_SERVICE=$1
+    ATOMIX_REPLICAS=$2
+
+    until nslookup "$ATOMIX_SERVICE-api" > /dev/null 2>&1; do sleep 2; done;
+
+    print_config

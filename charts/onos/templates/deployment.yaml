@@ -5,7 +5,7 @@ metadata:
   labels:
     app: {{ template "fullname" . }}
 spec:
-  replicas: {{ .Values.onos.replicas }}
+  replicas: {{ .Values.replicas }}
   selector:
     matchLabels:
       app: {{ template "fullname" . }}
@@ -14,19 +14,34 @@ spec:
       labels:
         app: {{ template "fullname" . }}
     spec:
+      initContainers:
+      - name: {{ .Chart.Name }}-init
+        image: ubuntu:16.04
+        env:
+        - name: ATOMIX_SERVICE
+          value: {{ template "atomix.fullname" . }}
+        - name: ATOMIX_REPLICAS
+          value: {{ .Values.atomix.replicas | quote }}
+        command:
+        - sh
+        - -c
+        - "/scripts/configure-onos.sh $ATOMIX_SERVICE $ATOMIX_REPLICAS > /config/cluster.json"
+        volumeMounts:
+        - name: init-scripts
+          mountPath: /scripts
+        - name: config
+          mountPath: /config
       containers:
       - name: {{ .Chart.Name }}
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
         imagePullPolicy: {{ .Values.image.pullPolicy }}
-        env:
-          - name: ATOMIX_SERVICE
-            value: {{ default "atomix" .Values.atomix.service | quote }}
-          - name: ONOS_HEAP
-            value: {{ default "4G" .Values.onos.heap | quote }}
         resources:
           requests:
             memory: {{ .Values.resources.requests.memory }}
             cpu: {{ .Values.resources.requests.cpu }}
+        env:
+        - name: JAVA_OPTS
+          value: -Xmx{{ default "2G" .Values.heap }}
         ports:
         - name: openflow
           containerPort: 6653
@@ -38,18 +53,12 @@ spec:
           containerPort: 8101
         - name: ui
           containerPort: 8181
-        command:
-        - sh
-        - -c
-        - "bin/start-onos \
-           --service=$ATOMIX_SERVICE \
-           --heap=$ONOS_HEAP"
         readinessProbe:
           exec:
             command:
             - sh
             - -c
-            - bin/check-onos-status
+            - /root/onos/bin/check-onos-status
           initialDelaySeconds: 30
           periodSeconds: 15
           failureThreshold: 10
@@ -58,12 +67,30 @@ spec:
             command:
             - sh
             - -c
-            - bin/check-onos-status
+            - /root/onos/bin/check-onos-status
           initialDelaySeconds: 30
           timeoutSeconds: 5
+        volumeMounts:
+        - name: probe-scripts
+          mountPath: /root/onos/bin/check-onos-status
+          subPath: check-onos-status
+        - name: config
+          mountPath: /root/onos/config/cluster.json
+          subPath: cluster.json
       {{- if .Values.image.pullSecrets }}
       imagePullSecrets:
         {{- range .Values.image.pullSecrets }}
         - name: {{ . | quote }}
         {{- end }}
       {{- end }}
+      volumes:
+      - name: init-scripts
+        configMap:
+          name: {{ template "fullname" . }}-init-scripts
+          defaultMode: 0744
+      - name: probe-scripts
+        configMap:
+          name: {{ template "fullname" . }}-probe-scripts
+          defaultMode: 0744
+      - name: config
+        emptyDir: {}

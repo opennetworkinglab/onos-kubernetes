@@ -1,19 +1,16 @@
 nameOverride: ""
 
 image:
-  repository: onos/onos-kubernetes
+  repository: onosproject/onos
   tag: 1.14.0
   pullPolicy: IfNotPresent
   pullSecrets: []
 
-onos:
-  replicas: 3
-  heap: 4G
-  proxy:
-    enabled: false
+replicas: 3
+heap: 4G
 
 atomix:
-  service: atomix
+  replicas: 3
 
 autoscaling:
   enabled: false
