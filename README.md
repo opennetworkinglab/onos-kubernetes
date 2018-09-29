@@ -1,99 +1,89 @@
 ## ONOS Kubernetes
 
-This project provides a canonical Kubernetes deployment for ONOS 1.14 and beyond. The technologies used in this project are:
-* Docker
-* Kubernetes
-* Helm
+This project provides a canonical Kubernetes deployment for [ONOS] 1.14 and beyond. The goal of this project is to provide one click deployment of a configurable ONOS+Atomix+Mininet cluster.
 
-The goals of this project are to support:
-* Managed Atomix cluster
-* Managed ONOS cluster
-* Load balancing for ONOS controller nodes
-* Autoscaling of ONOS controller nodes
-* Mininet for testing
+## Pod Configuration
 
-### Building Docker images
-
-To build the ONOS Kubernetes images, run `docker build` with the Dockerfile directory:
+To install the ONOS Helm chart, download [Helm] and run `helm install`:
 
 ```
-docker build -t onos/onos-kubernetes:1.14.0 docker/onos
+helm install charts/onos
 ```
 
-The Docker images are built directly from source by pulling from a git repository. You can specify the repository and branch from which to build the images with the `REPO` and `BRANCH` arguments:
+When running Helm on Minikube, you must disable anti-affinity for the Atomix chart:
 
 ```
-docker build -t onos/onos-kubernetes:1.14.0 docker/onos --build-arg REPO=https://github.com/kuujo/onos.git --build-arg BRANCH=dns-config
+helm install --set atomix.podAntiAffinity.enabled=false charts/onos
 ```
 
-### Running Atomix
-
-To run a standalone Atomix cluster, install the Atomix Helm chart:
+The number of ONOS and Atomix nodes can be configured by overriding `replicas` and `atomix.replicas` respectively:
 
 ```
-helm install charts/atomix
+helm install --set replicas=5 --set atomix.replicas=3 charts/onos
 ```
 
-By default, the Atomix cluster will be configured with three nodes in a stateful set. To configure the number of Atomix nodes, set the `atomix.replicas` value:
+To set the Docker image used by ONOS, override the `image` values:
 
 ```
-helm install --set atomix.replicas=5 charts/atomix
+helm install --set image.repository=onosproject/onos --set image.tag=1.14.1 charts/onos
 ```
 
-Once the chart is installed, you can delete the chart by running `helm delete` with the chart name:
+Similarly, override the Atomix image via `atomix.image` values:
 
 ```
-helm delete lunging-toucan
+helm install --set atomix.image.tag=3.0.6 charts/onos
 ```
 
-#### Using custom images
-
-To run Atomix with a custom image, override the image values:
-* `image.repository` - the Docker repository from which to pull the image
-* `image.tag` - the image tag to pull
-* `image.pullPolicy` - the image pull policy, use `Never` to use a local image
-* `image.pullSecrets` - a list of secret names
-
-### Running ONOS
-
-To run an ONOS cluster, install the ONOS Helm chart:
+To set the resource requests for ONOS containers, override the `resources.requests` values:
 
 ```
-> helm install charts/onos
+helm install --set resources.requests.cpu=2 --set resources.requests.memory=4Gi charts/onos
 ```
 
-By default, the ONOS cluster will be configured with three replicas and expect to connect to a three-node Atomix service. To change the number of replicas, override the `onos.replicas` value:
+The same goes for Atomix:
 
 ```
-helm install --set onos.replicas=5 charts/onos
+helm install --set atomix.resources.requests.cpu=2 --set atomix.resources.requests.memory=4Gi charts/onos
 ```
 
-When deployed separately, ONOS requires the name of the Atomix service to which to connect for internal service/configuration discovery and replication. To configure the Atomix service name, override the `atomix.service` value:
+To set the Atomix persistence configuration, override `atomix.persistence` values:
 
 ```
-helm install --set atomix.service=my-atomix-service charts/onos
+helm install --set atomix.persistence.size=2Gi --set atomix.persistence.storageClass=local-storage charts/onos
 ```
 
-#### Using custom images
+We strongly recommend using the `local-storage` storage class.
 
-To run ONOS with a custom image, override the image values:
-* `image.repository` - the Docker repository from which to pull the image
-* `image.tag` - the image tag to pull
-* `image.pullPolicy` - the image pull policy, use `Never` to use a local image
-* `image.pullSecrets` - a list of secret names
+### Application Configuration
 
-#### Autoscaling
-
-The ONOS deployment supports autoscaling. To enable autoscaling, use the `autoscaling.enabled` value:
+To activate ONOS applications at startup, override the `apps` value:
 
 ```
-helm install --set autoscaling.enabled=true charts/onos
+helm install --set apps={openflow, mcast} charts/onos
 ```
 
-### Running Mininet
-
-To run a Mininet node, install the Mininet Helm chart:
+To customize the Atomix configuration, override `atomix.config` and provide
+a custom configuration in either JSON or HOCON format:
 
 ```
-> helm install charts/mininet
+helm install --set atomix.config="partitionGroups.raft {type: raft, partitions: 7}" charts/onos
 ```
+
+To change the heap size for either ONOS or Atomix, override `heap` or `atomix.heap` respectively:
+
+```
+helm install --set heap=4G charts/onos
+```
+
+### Upgrading Atomix
+
+To upgrade the Atomix cluster, run `helm upgrade` and update the `atomix.image.tag`:
+
+```
+helm upgrade --set atomix.image.tag=3.0.6 charts/onos
+```
+
+The Atomix pod disruption budget ensures only a single Atomix node will be down at any given time. Availability for the ONOS cluster will be maintained throughout the upgrade.
+
+[ONOS]: https://onosproject.org
+[Helm]: https://helm.sh
