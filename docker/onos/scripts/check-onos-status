@@ -1,9 +1,0 @@
-#!/bin/bash
-# -----------------------------------------------------------------------------
-# Checks whether the specified ONOS cluster node has the desired state.
-# -----------------------------------------------------------------------------
-
-host=$(hostname -s)
-status=$(curl -s http://$host:8181/onos/v1/cluster --user onos:rocks | jq --arg host "$host" -r '.nodes | .[] | select(.id==$host) | .status')
-echo $status
-[ "$status" == "READY" ] || exit 1
