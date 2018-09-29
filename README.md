@@ -10,25 +10,25 @@ To install the ONOS Helm chart, download [Helm] and run `helm install`:
 helm install charts/onos
 ```
 
-When running Helm on Minikube, you must disable anti-affinity for the Atomix chart:
+Atomix uses an anti-affinity policy to ensure cluster state is replicated on distinct hosts.
+When running the ONOS chart in Minikube, anti-affinity must be disabled since there's only a single Kubernetes worker node:
 
 ```
 helm install --set atomix.podAntiAffinity.enabled=false charts/onos
 ```
 
-The number of ONOS and Atomix nodes can be configured by overriding `replicas` and `atomix.replicas` respectively:
+The number of ONOS and Atomix nodes are independent of one another. To scale southbound I/O,
+increase the number of ONOS nodes by overriding `replicas`, and to scale data storage and fault tolerance, increase the number of Atomix nodes by overriding `atomix.replicas`:
 
 ```
 helm install --set replicas=5 --set atomix.replicas=3 charts/onos
 ```
 
-To set the Docker image used by ONOS, override the `image` values:
+By default, the latest stable official ONOS and Atomix images are used. To override the images, use the `image` and `atomix.image` values:
 
 ```
 helm install --set image.repository=onosproject/onos --set image.tag=1.14.1 charts/onos
 ```
-
-Similarly, override the Atomix image via `atomix.image` values:
 
 ```
 helm install --set atomix.image.tag=3.0.6 charts/onos
@@ -77,10 +77,16 @@ helm install --set heap=4G charts/onos
 
 ### Upgrading Atomix
 
-To upgrade the Atomix cluster, run `helm upgrade` and update the `atomix.image.tag`:
+Helm does not support upgrades of dependency charts. Thus, to upgrade the Atomix cluster you must manually patch the Atomix StatefulSet. First, install the ONOS chart:
 
 ```
-helm upgrade --set atomix.image.tag=3.0.6 charts/onos
+helm install --set atomix.image.tag=3.0.5 charts/onos
+```
+
+Once the chart is ready, patch the Atomix image to upgrade Atomix:
+
+```
+kubectl patch statefulset iced-bison-atomix --type='json' -p='[{"op": "replace", "path": "/spec/template/spec/containers/0/image", "value": "atomix/atomix:3.0.6"}]'
 ```
 
 The Atomix pod disruption budget ensures only a single Atomix node will be down at any given time. Availability for the ONOS cluster will be maintained throughout the upgrade.
