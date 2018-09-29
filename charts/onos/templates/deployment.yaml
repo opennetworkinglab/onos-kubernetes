@@ -68,7 +68,8 @@ spec:
             - sh
             - -c
             - /root/onos/bin/check-onos-status
-          initialDelaySeconds: 30
+          initialDelaySeconds: 300
+          periodSeconds: 15
           timeoutSeconds: 5
         volumeMounts:
         - name: probe-scripts
