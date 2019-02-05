@@ -16,7 +16,7 @@ spec:
     spec:
       initContainers:
       - name: {{ .Chart.Name }}-init
-        image: ubuntu:16.04
+        image: tutum/dnsutils:latest
         env:
         - name: ATOMIX_SERVICE
           value: {{ template "atomix.fullname" . }}
