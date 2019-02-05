@@ -4,6 +4,9 @@ metadata:
   name: {{ template "fullname" . }}
   labels:
     app: {{ template "fullname" . }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: "{{ .Release.Name }}"
+    heritage: "{{ .Release.Service }}"
 spec:
   replicas: {{ .Values.replicas }}
   selector:
@@ -15,22 +18,20 @@ spec:
         app: {{ template "fullname" . }}
     spec:
       initContainers:
-      - name: {{ .Chart.Name }}-init
+      - name: {{ .Chart.Name }}-init-config
         image: tutum/dnsutils:latest
-        env:
-        - name: ATOMIX_SERVICE
-          value: {{ template "atomix.fullname" . }}
-        - name: ATOMIX_REPLICAS
-          value: {{ .Values.atomix.replicas | quote }}
         command:
         - sh
         - -c
-        - "/scripts/configure-onos.sh $ATOMIX_SERVICE $ATOMIX_REPLICAS > /config/cluster.json && touch /config/active"
+        - "/scripts/configure-onos.sh > /config/cluster.json && touch /config/active"
         volumeMounts:
         - name: init-scripts
           mountPath: /scripts
         - name: config
           mountPath: /config
+      - name: {{ .Chart.Name }}-init-service
+        image: tutum/dnsutils:latest
+        command: ["sh", "-c", "until nslookup \"{{ template "fullname" }}-atomix\" > /dev/null 2>&1; do sleep 2; done;"]
       containers:
       - name: {{ .Chart.Name }}
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"

@@ -1,0 +1,16 @@
+apiVersion: agent.atomix.io/v1alpha1
+kind: AtomixCluster
+metadata:
+  name: {{ template "fullname" . }}-atomix
+  labels:
+    app: {{ template "fullname" . }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: "{{ .Release.Name }}"
+    heritage: "{{ .Release.Service }}"
+spec:
+  version: latest
+  size: {{ .Values.atomix.cluster.replicas }}
+  storage:
+    {{- range $key, $val := .Values.atomix.cluster.storage }}
+    {{ $key }}: {{ $val | quote }}
+    {{- end}}

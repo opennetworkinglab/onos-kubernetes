@@ -2,7 +2,7 @@ nameOverride: ""
 
 image:
   repository: onosproject/onos
-  tag: 1.14.0
+  tag: 2.0.0
   pullPolicy: IfNotPresent
   pullSecrets: []
 
@@ -14,7 +14,15 @@ apps:
 - org.onosproject.mcast
 
 atomix:
-  replicas: 3
+  cluster:
+    replicas: 3
+    storage: {}
+  raft:
+    replicas: 3
+    partitions: 3
+    partitionSize: 3
+    storage: {}
+    compaction: {}
 
 autoscaling:
   enabled: false

@@ -1,0 +1,23 @@
+apiVersion: agent.atomix.io/v1alpha1
+kind: PartitionGroup
+metadata:
+  name: {{ template "fullname" . }}-raft
+  labels:
+    app: {{ template "fullname" . }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: "{{ .Release.Name }}"
+    heritage: "{{ .Release.Service }}"
+spec:
+  cluster: {{ template "fullname" . }}-atomix
+  size: {{ .Values.atomix.raft.replicas }}
+  partitions: {{ .Values.atomix.raft.partitions }}
+  partitionSize: {{ .Values.atomix.raft.partitionSize }}
+  raft:
+    storage:
+      {{- range $key, $val := .Values.atomix.raft.storage }}
+      {{ $key }}: {{ $val | quote }}
+      {{- end}}
+    compaction:
+      {{- range $key, $val := .Values.atomix.raft.compaction }}
+      {{ $key }}: {{ $val | quote }}
+      {{- end}}
