@@ -11,27 +11,8 @@ data:
   configure-onos.sh: |
     #!/usr/bin/env bash
 
-    apt-get update > /dev/null 2>&1
-    apt-get -y install dnsutils > /dev/null 2>&1
-
-    USER=`whoami`
     HOST=`hostname -s`
     DOMAIN=`hostname -d`
-    CONFIG_DIR="/root/onos/config"
-    CONFIG_FILE="$CONFIG_DIR/cluster.json"
-    HEAP=2G
-
-    function print_usage() {
-    echo "\
-    Usage: start-onos [OPTIONS]
-    Starts an ONOS node based on the supplied options.
-        --service           The name of the Atomix service to which to connect.
-        --replicas          The number of Atomix nodes to which to connect. The default value is 1.
-        --heap              The maximum amount of heap to use. The format is the
-                            same as that used for the Xmx and Xms parameters to the
-                            JVM. e.g. --heap=2G. The default is 2G.
-    "
-    }
 
     function print_config() {
         echo "{"
@@ -48,7 +29,7 @@ data:
     function print_node() {
         echo "  \"node\": {"
         echo "    \"id\": \"$HOST\","
-        echo "    \"host\": \"$HOST\","
+        echo "    \"host\": \"$HOST.$DOMAIN\","
         echo "    \"port\": 9876"
         echo "  },"
     }
